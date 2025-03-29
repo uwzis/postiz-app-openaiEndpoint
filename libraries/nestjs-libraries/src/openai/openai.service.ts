@@ -4,8 +4,10 @@ import { shuffle } from 'lodash';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 
+// Initialize the OpenAI client with environment variables
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
+  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-', // Default API key if not set in .env
+  baseURL: process.env.OPENAI_API_BASE_URL, // Custom base URL from .env
 });
 
 const PicturePrompt = z.object({
@@ -22,7 +24,6 @@ export class OpenaiService {
         model: 'dall-e-3',
       })
     ).data[0];
-
     return isUrl ? generate.url : generate.b64_json;
   }
 
@@ -84,7 +85,6 @@ export class OpenaiService {
         }),
       ])
     ).flatMap((p) => p.choices);
-
     return shuffle(
       posts.map((choice) => {
         const { content } = choice.message;
@@ -105,6 +105,7 @@ export class OpenaiService {
       })
     );
   }
+
   async extractWebsiteText(content: string) {
     const websiteContent = await openai.chat.completions.create({
       messages: [
@@ -120,9 +121,7 @@ export class OpenaiService {
       ],
       model: 'gpt-4o',
     });
-
     const { content: articleContent } = websiteContent.choices[0].message;
-
     return this.generatePosts(articleContent!);
   }
 }
